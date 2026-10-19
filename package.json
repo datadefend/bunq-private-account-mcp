@@ -1,36 +1,66 @@
 {
-  "name": "bunq-mcp",
-  "version": "0.0.9",
+  "name": "@datadefend/bunq-mcp-readonly",
+  "version": "0.1.0",
+  "description": "Read-only, OAuth-only MCP server for a personal bunq account. Hardened patch of the community bunq-mcp, maintained by datadefend.",
+  "keywords": [
+    "bunq",
+    "mcp",
+    "model-context-protocol",
+    "read-only",
+    "banking"
+  ],
   "license": "MIT",
+  "author": "datadefend GmbH",
+  "contributors": [
+    "Wilco Kruijer (original bunq-mcp)"
+  ],
+  "homepage": "https://github.com/datadefend/bunq-mcp-readonly#readme",
+  "bugs": {
+    "url": "https://github.com/datadefend/bunq-mcp-readonly/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WilcoKruijer/bunq-mcp.git"
+    "url": "git+https://github.com/datadefend/bunq-mcp-readonly.git"
+  },
+  "type": "module",
+  "bin": {
+    "bunq-mcp-readonly": "./bin/run.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "vite.config.ts",
+    "wrangler.jsonc",
+    "tsconfig.json",
+    "tsconfig.base.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "deploy": "wrangler deploy",
     "dev": "npx vite dev",
     "build": "npx vite build",
     "start": "wrangler dev",
     "cf-typegen": "wrangler types"
   },
-  "bin": {
-    "bunq-mcp": "./bin/run.js"
-  },
-  "type": "module",
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.2.2",
     "@cloudflare/workers-oauth-provider": "^0.0.5",
     "@modelcontextprotocol/sdk": "^1.11.1",
-    "@types/node": "^22.15.17",
     "agents": "^0.0.80",
     "hono": "^4.7.9",
-    "just-pick": "^4.2.0",
-    "octokit": "^4.1.3",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "workers-mcp": "0.1.0-3",
     "wrangler": "^4.15.2",
     "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "@types/node": "^22.15.17"
   }
 }
