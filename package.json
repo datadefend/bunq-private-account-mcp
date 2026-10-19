@@ -1,6 +1,6 @@
 {
   "name": "@datadefend/bunq-private-account-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only, OAuth-only MCP server for a personal bunq account. Hardened patch of the community bunq-mcp, maintained by datadefend.",
   "keywords": [
     "bunq",
@@ -24,7 +24,7 @@
   },
   "type": "module",
   "bin": {
-    "bunq-private-account-mcp": "./bin/run.js"
+    "bunq-private-account-mcp": "bin/run.js"
   },
   "files": [
     "bin/",
