@@ -1,12 +1,12 @@
 {
   "name": "@datadefend/bunq-private-account-mcp",
-  "version": "0.1.1",
-  "description": "Read-only, OAuth-only MCP server for a personal bunq account. Hardened patch of the community bunq-mcp, maintained by datadefend.",
+  "version": "0.2.0",
+  "description": "Unofficial MCP server for a personal bunq account: reads plus draft payments you approve in the bunq app. Provided as is, without warranty or support.",
   "keywords": [
     "bunq",
     "mcp",
     "model-context-protocol",
-    "read-only",
+    "draft-payments",
     "banking"
   ],
   "license": "MIT",

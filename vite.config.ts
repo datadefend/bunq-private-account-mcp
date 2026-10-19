@@ -7,7 +7,7 @@ import { loadKeys } from "./bin/keys.js";
 // Refuse to start without the OAuth client and the per-user key material.
 if (!env["BUNQ_CLIENT_ID"] || !env["BUNQ_CLIENT_SECRET"]) {
   throw new Error(
-    "BUNQ_CLIENT_ID and BUNQ_CLIENT_SECRET are required. This read-only build only supports OAuth.",
+    "BUNQ_CLIENT_ID and BUNQ_CLIENT_SECRET are required. This build only supports OAuth.",
   );
 }
 const keys = loadKeys();
@@ -41,6 +41,7 @@ export default defineConfig({
       BUNQ_PUBLIC_KEY: keys.publicKey,
       BUNQ_PRIVATE_KEY: keys.privateKey,
       BUNQ_COOKIE_SECRET: keys.cookieSecret,
+      BUNQ_DRAFT_MAX_AMOUNT: env["BUNQ_DRAFT_MAX_AMOUNT"],
       IS_DEVELOPMENT: env["IS_DEVELOPMENT"],
     },
   },

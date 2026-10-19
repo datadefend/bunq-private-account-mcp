@@ -7,9 +7,9 @@ import type { BunqAuthProps } from "./bunq/BunqClient";
 import { registerTools } from "./tools";
 import { bunqClientId, bunqClientSecret } from "./config";
 
-// Read-only build: OAuth mode only. config.ts throws at load if the client ID,
-// client secret or per-user keys are missing, so the server refuses to start.
-console.log("Using OAuth flow with client ID and secret (read-only build)");
+// OAuth mode only. config.ts throws at load if the client ID, client secret or per-user
+// keys are missing, so the server refuses to start.
+console.log("Using OAuth flow with client ID and secret (reads and draft payments only)");
 
 // Add the bunq props that we'll store in the token
 type ExtendedProps = BunqAuthProps;

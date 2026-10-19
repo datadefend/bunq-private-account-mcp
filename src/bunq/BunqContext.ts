@@ -218,9 +218,16 @@ export class BunqContext {
       throw new Error("Failed to initialize bunq context");
     }
 
-    // Read-only build: after session setup only GET requests reach the bunq API.
-    if (method !== "GET" || body !== undefined) {
-      throw new Error(`Blocked ${method} ${endpoint}: this build is read-only`);
+    // After session setup only two kinds of request reach the bunq API: GET without a body,
+    // and POST to the draft-payment endpoint. Drafts need acceptance in the bunq app, so no
+    // request this server can make moves money.
+    const isRead = method === "GET" && body === undefined;
+    const isDraft =
+      method === "POST" &&
+      body !== undefined &&
+      /^\/user\/\d+\/monetary-account\/\d+\/draft-payment$/.test(endpoint);
+    if (!isRead && !isDraft) {
+      throw new Error(`Blocked ${method} ${endpoint}: only reads and draft payments are allowed`);
     }
 
     const bodyStr = body ? JSON.stringify(body) : "";

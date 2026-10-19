@@ -38,7 +38,7 @@ let hasArgs = false;
 
 async function printHelp() {
   await printVersion();
-  console.log("\nUsage: bunq-mcp [options]\n");
+  console.log("\nUsage: bunq-private-account-mcp [options]\n");
   console.log("Options:");
   console.log("  --help              Show help");
   console.log("  --version           Show version");

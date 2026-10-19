@@ -4,6 +4,7 @@ import getTransactionsTool from "./getTransactions";
 import getRequestInquiriesTool from "./getRequestInquiries";
 import getPaymentAutoAllocatesTool from "./getPaymentAutoAllocates";
 import getTopCounterpartiesTool from "./getTopCounterparties";
+import createDraftPaymentTool from "./createDraftPayment";
 
 export type ToolDefinition = {
   name: string;
@@ -19,5 +20,6 @@ export function registerTools(bunqClient: BunqClient): ToolDefinition[] {
     getRequestInquiriesTool(bunqClient),
     getPaymentAutoAllocatesTool(bunqClient),
     getTopCounterpartiesTool(bunqClient),
+    createDraftPaymentTool(bunqClient),
   ];
 }
