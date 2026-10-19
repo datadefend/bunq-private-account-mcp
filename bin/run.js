@@ -3,11 +3,12 @@
 // @ts-check
 
 import { env } from "node:process";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
+import { ensureKeys, getKeyDir } from "./keys.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -16,11 +17,9 @@ const {
     help,
     "generate-keys": generateKeys,
     mcp,
-    host,
     port,
     "bunq-client-id": bunqClientId,
     "bunq-client-secret": bunqClientSecret,
-    "bunq-api-key": bunqApiKey,
     version,
   },
 } = parseArgs({
@@ -28,12 +27,10 @@ const {
     help: { type: "boolean" },
     "generate-keys": { type: "boolean" },
     mcp: { type: "boolean" },
-    host: { type: "string" },
     port: { type: "string", short: "p" },
     "bunq-client-id": { type: "string" },
     "bunq-client-secret": { type: "string" },
     version: { type: "boolean", short: "v" },
-    "bunq-api-key": { type: "string" },
   },
 });
 
@@ -45,9 +42,8 @@ async function printHelp() {
   console.log("Options:");
   console.log("  --help              Show help");
   console.log("  --version           Show version");
-  console.log("  --generate-keys     Generate private and public key pair for Bunq installation");
+  console.log("  --generate-keys     Generate key pair and cookie secret in the per-user folder");
   console.log("  --mcp               Start MCP server");
-  console.log("  --host <host>       Host (for MCP server)");
   console.log("  --port <port>       Port (for MCP server)");
   console.log(
     "  --bunq-client-id <id>         Bunq client ID (alternative to BUNQ_CLIENT_ID env var)",
@@ -55,11 +51,12 @@ async function printHelp() {
   console.log(
     "  --bunq-client-secret <secret> Bunq client secret (alternative to BUNQ_CLIENT_SECRET env var)",
   );
-  console.log("  --bunq-api-key <key>          Bunq API key (alternative to BUNQ_API_KEY env var)");
 
   console.log("");
   console.log("Hint:");
-  console.log("  - Either an api key needs to be set, or a client id AND secret.");
+  console.log("  - A bunq OAuth client id AND secret are required. API keys are not supported.");
+  console.log("  - The server binds to 127.0.0.1 only.");
+  console.log(`  - Keys are kept in '${getKeyDir()}'.`);
 }
 
 async function printVersion() {
@@ -82,35 +79,10 @@ if (version) {
 
 if (generateKeys) {
   hasArgs = true;
-  const keysDir = join(__dirname, "../src/keys");
-  const privKey = join(keysDir, "dev-private-bunq-key.pem.txt");
-  const pubKey = join(keysDir, "dev-public-bunq-key.pub.txt");
-  const cookieFile = join(keysDir, "cookie.txt");
-
-  // Generate private key
-  const genPriv = spawnSync("openssl", ["genrsa", "-out", privKey], { stdio: "inherit" });
-  if (genPriv.status !== 0) {
-    process.exit(genPriv.status);
-  }
-  // Generate public key from private key
-  const genPub = spawnSync(
-    "openssl",
-    ["rsa", "-in", privKey, "-outform", "PEM", "-pubout", "-out", pubKey],
-    { stdio: "inherit" },
+  const created = ensureKeys();
+  console.log(
+    created ? `Keys generated in '${getKeyDir()}'` : `Keys already present in '${getKeyDir()}'`,
   );
-  if (genPub.status !== 0) {
-    process.exit(genPub.status);
-  }
-  // Generate cookie
-  const genCookie = spawnSync("openssl", ["rand", "-hex", "32"], { stdio: "pipe" });
-  if (genCookie.status !== 0) {
-    process.exit(genCookie.status);
-  }
-  const cookie = genCookie.stdout.toString().trim();
-  await writeFile(cookieFile, cookie);
-
-  console.log(`Keys generated at '${privKey}' and '${pubKey}'`);
-  console.log(`Cookie generated at '${cookieFile}'`);
 }
 
 if (mcp) {
@@ -118,13 +90,18 @@ if (mcp) {
 
   const clientId = bunqClientId || env["BUNQ_CLIENT_ID"];
   const clientSecret = bunqClientSecret || env["BUNQ_CLIENT_SECRET"];
-  const apiKey = bunqApiKey || env["BUNQ_API_KEY"];
+
+  if (!clientId || !clientSecret) {
+    console.error("A bunq OAuth client id and secret are required. See --help.");
+    process.exit(1);
+  }
+
+  if (ensureKeys()) {
+    console.log(`First run: keys generated in '${getKeyDir()}'`);
+  }
 
   console.log("Starting MCP server");
   const viteArgs = ["vite", "--config", join(__dirname, "../vite.config.ts")];
-  if (host) {
-    viteArgs.push("--host", host);
-  }
   if (port) {
     viteArgs.push("--port", port);
   }
@@ -136,7 +113,6 @@ if (mcp) {
       ...env,
       BUNQ_CLIENT_ID: clientId,
       BUNQ_CLIENT_SECRET: clientSecret,
-      BUNQ_API_KEY: apiKey,
     },
   });
 

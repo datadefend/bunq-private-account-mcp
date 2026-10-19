@@ -1,13 +1,12 @@
-import devPublicKey from "../keys/dev-public-bunq-key.pub.txt";
-import devPrivateKey from "../keys/dev-private-bunq-key.pem.txt";
+import { bunqPrivateKey, bunqPublicKey } from "../config";
 
 export async function getPublicKey(): Promise<string> {
-  return devPublicKey;
+  return bunqPublicKey;
 }
 
 export async function getPrivateKey(): Promise<CryptoKey> {
   // Remove PEM header, footer and newlines
-  const privateKeyBase64 = devPrivateKey
+  const privateKeyBase64 = bunqPrivateKey
     .replace("-----BEGIN PRIVATE KEY-----", "")
     .replace("-----END PRIVATE KEY-----", "")
     .replace(/\n/g, "");

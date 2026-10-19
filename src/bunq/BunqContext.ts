@@ -218,6 +218,11 @@ export class BunqContext {
       throw new Error("Failed to initialize bunq context");
     }
 
+    // Read-only build: after session setup only GET requests reach the bunq API.
+    if (method !== "GET" || body !== undefined) {
+      throw new Error(`Blocked ${method} ${endpoint}: this build is read-only`);
+    }
+
     const bodyStr = body ? JSON.stringify(body) : "";
     const signature = await signRequestBody(bodyStr);
 

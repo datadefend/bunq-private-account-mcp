@@ -6,7 +6,7 @@ import {
   renderApprovalDialog,
 } from "../workers-oauth-utils";
 import { getBunqClient, type BunqAuthProps } from "./BunqClient";
-import cookie from "../keys/cookie.txt";
+import { cookieSecret as cookie } from "../config";
 
 export const createOAuthHandler = (bunqClientId: string, bunqClientSecret: string) => {
   const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>();
@@ -77,7 +77,7 @@ export const createOAuthHandler = (bunqClientId: string, bunqClientSecret: strin
     });
 
     if (!tokenResponse.ok) {
-      console.error("Failed to exchange code for token", await tokenResponse.text());
+      console.error("Failed to exchange code for token, HTTP status", tokenResponse.status);
       return c.text("Failed to authenticate with Bunq", 500);
     }
 

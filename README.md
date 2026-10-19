@@ -1,162 +1,64 @@
-# Bunq MCP
+# bunq-mcp, read-only patch
 
-A Model Context Protocol server for Bunq (Dutch neo bank).
+Local, read-only build of the community bunq MCP server
+([WilcoKruijer/bunq-mcp](https://github.com/WilcoKruijer/bunq-mcp), commit `500be7d`, unmaintained
+since May 2025). OAuth mode only, for one personal bunq account on one machine. The first commit in
+this repo is upstream unchanged, so `git diff HEAD~1` shows the whole patch.
 
-![Screenshot](./resources/screenshot.png)
+## Tools
 
-## Available Tools
+`bunqAccounts`, `getTransactions`, `getRequestInquiries`, `getPaymentAutoAllocates`,
+`getTopCounterparties`. Nothing that creates, drafts or requests a payment.
 
-This MCP server provides the following tools for interacting with Bunq:
+## Setup
 
-1. **bunqAccounts** - Get your Bunq accounts with details like account type, balance, and ID
-2. **getTransactions** - View transactions (payments) for a specific account
-3. **getRequestInquiries** - Get money requests you've sent from a specific account
-4. **createPaymentRequest** - Create a payment request to receive money into your account
-5. **getPaymentAutoAllocates** - Get automatic payment allocation settings for an account
-6. **getTopCounterparties** - Get a list of unique person counterparties based on recent transactions
-7. **createDraftPayment** - Create draft payments with optional scheduling (requires review / approval in
-   the app before execution)
-8. **createPayment** - Create real-money payments (transfers immediately). Only available when using
-   an API key (not OAuth).
+1. **Node.js** (tested with 24), then `npm ci` in this folder.
+2. **Create a bunq OAuth client** in the bunq app (developer settings, OAuth). Set the redirect URL to
+   exactly `http://127.0.0.1:8788/callback`. Note the client ID and client secret. When you approve
+   access later, grant the narrowest access bunq offers.
+3. **Start the server** (first run generates the keys, see below):
 
-These tools can be accessed through any MCP client connected to this server.
-
-## Authentication
-
-This server supports two modes of authentication: **OAuth** and **API Key**. See the [Bunq
-documentation](https://doc.bunq.com/basics/authentication) for more information.
-
-Creating an API key or OAuth client is done through the Bunq app:
-
-1. Press your face on the top left
-2. Press the cog in the top right
-3. Under "Developers", either go to "OAuth" or "API Keys".
-4. If using OAuth set the redirect URL to the following:
-   ```
-   http://localhost:8788/callback
+   ```bash
+   node bin/run.js --mcp --bunq-client-id <id> --bunq-client-secret <secret>
    ```
 
-(Modify the port if needed.)
+   `BUNQ_CLIENT_ID` and `BUNQ_CLIENT_SECRET` environment variables work too. Prefer them over flags
+   if you do not want the secret in your shell history.
+4. **Connect your MCP client** through `mcp-remote`, always with `127.0.0.1`, not `localhost`:
 
-When starting the server, you can either set the `BUNQ_CLIENT_ID` and `BUNQ_CLIENT_SECRET`
-environment variables, or the `BUNQ_API_KEY` environment variable. Alternatively, you can pass
-the client ID and secret or API key as command line arguments: `--bunq-client-id <id> --bunq-client-secret <secret>` or `--bunq-api-key <key>`.
+   ```json
+   { "mcpServers": { "bunq": { "command": "npx", "args": ["mcp-remote", "http://127.0.0.1:8788/sse"] } } }
+   ```
 
-**Note:** If you want to create actual real-money non-draft payments, you need to use an API key.
+   The first connection opens the browser for the bunq OAuth approval.
 
-## Installation & Usage
+**Keys.** On first run the server creates an RSA key pair (for signing bunq API requests) and a
+cookie secret in `%APPDATA%\bunq-mcp-readonly` (Linux and macOS: `~/.config/bunq-mcp-readonly`).
+It refuses to start if they are missing or incomplete. To rotate, delete the folder and start again.
+`node bin/run.js --generate-keys` creates them without starting.
 
-1. Install the `bunq-mcp` and `mcp-remote` CLI tools:
+**Token lifetime.** The bunq OAuth token is held in memory only. After every restart the MCP client
+has to authorize again.
 
-```sh
-npm install -g bunq-mcp mcp-remote
-```
+**Do not** run `npm run deploy`, and do not keep or share `dist/` after `npm run build`: the build
+embeds the client secret and keys.
 
-2. In the Bunq app, create an OAuth client or API key (see above).
+## Changes against upstream
 
-3. (Optional) Generate a new public/private key pair:
+1. Write tools removed: `createPayment`, `createDraftPayment`, `createPaymentRequest`, plus the
+   underlying API methods; the bunq request helper now rejects anything but GET after session setup.
+2. API-key mode removed: no `--bunq-api-key`, no `BUNQ_API_KEY`, no Docker setup (it was API-key
+   only); the server refuses to start without an OAuth client ID and secret.
+3. No local state: `persistState: false` in the Cloudflare Vite plugin, so the OAuth token and KV
+   data never reach `.wrangler/state` (finding N1).
+4. Bundled keys removed: `src/keys` is gone; key pair and cookie secret are generated per user
+   outside the repo, and startup fails without them (finding H1). Upstream at this commit had no
+   `_.dev.vars` file, so there was nothing to delete there.
+5. Info page removed: `/` returns 404 instead of printing the client ID, cookie secret and account
+   name (finding M3).
+6. Body logging removed: no more `POSTING` or `RESPONSE` dumps, and a failed token exchange logs only
+   the HTTP status (finding L2).
+7. Loopback only: Vite and `wrangler dev` bind to `127.0.0.1`, `--host` is gone, and the Vite config
+   refuses any other host.
 
-```sh
-bunq-mcp --generate-keys
-```
-
-Note this assumes `openssl` is installed & available on the PATH. If you decide to skip this step,
-pre-existing keys in `./src/keys/` will be used. The created keys will override the pre-existing
-keys and are stored in the global `node_modules` directory.
-
-4. Start the MCP server in any terminal:
-
-```sh
-bunq-mcp --mcp --bunq-client-id <client-id> --bunq-client-secret <client-secret>
-```
-
-Client ID and secret can also be set using the `BUNQ_CLIENT_ID` and `BUNQ_CLIENT_SECRET`
-environment variables.
-
-5. In your favourite editor or other MCP client (such as Claude Desktop), add the following:
-
-```json
-{
-  "mcpServers": {
-    "bunq-mcp": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://localhost:8788/sse"]
-    }
-  }
-}
-```
-
-Again, modify the port if needed. `mcp-remote` is used because this package uses the SSE transport,
-while most clients do not support that. See [mcp-remote](https://github.com/geelen/mcp-remote) for
-more information.
-
-6. As soon as the MCP server is started, `mcp-remote` should open your browser to start the OAuth
-   flow.
-
-You should now be able to ask a question, such as
-
-- What's my current Bunq balance?
-- What are my top 5 counterparties?
-- What was my last transaction?
-
-## Troubleshooting
-
-- If there's any issue with the OAuth flow, you can try to delete the directory created by
-  `mcp-remote` in your home directory: `rm -rf ~/.mcp-auth`.
-
-## CLI
-
-```
-Usage: bunq-mcp [options]
-
-Options:
-  --help              Show help
-  --version           Show version
-  --generate-keys     Generate private and public key pair for Bunq installation
-  --mcp               Start MCP server
-  --host <host>       Host (for MCP server)
-  --port <port>       Port (for MCP server)
-  --bunq-client-id <id>         Bunq client ID (alternative to BUNQ_CLIENT_ID env var)
-  --bunq-client-secret <secret> Bunq client secret (alternative to BUNQ_CLIENT_SECRET env var)
-  --bunq-api-key <key>          Bunq API key (alternative to BUNQ_API_KEY env var)
-```
-
-## Development
-
-1. Create `.dev.vars` file in the root directory with the following content:
-
-```sh
-# When set to 1 the public/private key pair in this repo is used.
-IS_DEVELOPMENT=1
-
-# Create OAuth client in the Bunq app
-BUNQ_CLIENT_ID=
-BUNQ_CLIENT_SECRET=
-```
-
-2. Start development server
-
-```sh
-npm run dev
-```
-
-3. Setup MCP configuration
-
-```json
-{
-  "mcpServers": {
-    "bunq-mcp": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://localhost:8788/sse"]
-    }
-  }
-}
-```
-
-## Limitations
-
-- It's not possible to create payments using the OAuth flow. Only draft payments can be created.
-
-```json
-{ "Error": [{ "error_description": "Not enough permissions to create payment." }] }
-```
+`README.OLD.md` is upstream's earlier readme and partly describes removed features.

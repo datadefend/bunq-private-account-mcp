@@ -6,7 +6,6 @@ import { UserProfileAPI } from "./api/UserProfileAPI";
 
 export interface BunqAuthProps {
   accessToken?: string;
-  apiKeyAccessToken?: string;
 }
 
 export class BunqClient {
