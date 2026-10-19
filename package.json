@@ -1,5 +1,5 @@
 {
-  "name": "@datadefend/bunq-mcp-readonly",
+  "name": "@datadefend/bunq-private-account-mcp",
   "version": "0.1.0",
   "description": "Read-only, OAuth-only MCP server for a personal bunq account. Hardened patch of the community bunq-mcp, maintained by datadefend.",
   "keywords": [
@@ -14,17 +14,17 @@
   "contributors": [
     "Wilco Kruijer (original bunq-mcp)"
   ],
-  "homepage": "https://github.com/datadefend/bunq-mcp-readonly#readme",
+  "homepage": "https://github.com/datadefend/bunq-private-account-mcp#readme",
   "bugs": {
-    "url": "https://github.com/datadefend/bunq-mcp-readonly/issues"
+    "url": "https://github.com/datadefend/bunq-private-account-mcp/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/datadefend/bunq-mcp-readonly.git"
+    "url": "git+https://github.com/datadefend/bunq-private-account-mcp.git"
   },
   "type": "module",
   "bin": {
-    "bunq-mcp-readonly": "./bin/run.js"
+    "bunq-private-account-mcp": "./bin/run.js"
   },
   "files": [
     "bin/",

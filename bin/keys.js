@@ -1,7 +1,7 @@
 // @ts-check
 
 // Per-user key material, kept outside the repository.
-// Windows: %APPDATA%\bunq-mcp-readonly, elsewhere: $XDG_CONFIG_HOME or ~/.config.
+// Windows: %APPDATA%\bunq-private-account-mcp, elsewhere: $XDG_CONFIG_HOME or ~/.config.
 // BUNQ_MCP_HOME overrides the folder (used for testing with throwaway keys).
 
 import { env } from "node:process";
@@ -21,7 +21,7 @@ export function getKeyDir() {
     return env["BUNQ_MCP_HOME"];
   }
   const base = env["APPDATA"] || env["XDG_CONFIG_HOME"] || join(homedir(), ".config");
-  return join(base, "bunq-mcp-readonly");
+  return join(base, "bunq-private-account-mcp");
 }
 
 /**

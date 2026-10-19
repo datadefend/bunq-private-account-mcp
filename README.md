@@ -1,4 +1,4 @@
-# bunq-mcp-readonly
+# bunq-private-account-mcp
 
 A read-only MCP server for your personal bunq account. It lets an AI assistant look at your accounts and
 transactions, and it cannot create, draft or request any payment.
@@ -27,7 +27,7 @@ There are no write tools, and after session setup the server only sends GET requ
 3. **Start the server.** The first run creates your signing keys (see below).
 
    ```bash
-   npx @datadefend/bunq-mcp-readonly --mcp
+   npx @datadefend/bunq-private-account-mcp --mcp
    ```
 
    Pass the OAuth client through the `BUNQ_CLIENT_ID` and `BUNQ_CLIENT_SECRET` environment variables. The
@@ -41,7 +41,7 @@ There are no write tools, and after session setup the server only sends GET requ
    The first connection opens your browser for the bunq approval.
 
 **Keys.** On first run the server creates an RSA key pair for signing bunq requests and a cookie secret in
-`%APPDATA%\bunq-mcp-readonly` on Windows, or `~/.config/bunq-mcp-readonly` on Linux and macOS. It refuses
+`%APPDATA%\bunq-private-account-mcp` on Windows, or `~/.config/bunq-private-account-mcp` on Linux and macOS. It refuses
 to start without them. To rotate them, delete the folder and start again, or run `--generate-keys`.
 
 **Token.** The bunq OAuth token is held in memory only and never written to disk. After every restart your
